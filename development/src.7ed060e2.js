@@ -2426,7 +2426,46 @@ module.exports = parent;
 
 },{"../../es/instance/concat":"../node_modules/core-js-pure/es/instance/concat.js"}],"../node_modules/@babel/runtime-corejs3/core-js-stable/instance/concat.js":[function(require,module,exports) {
 module.exports = require("core-js-pure/stable/instance/concat");
-},{"core-js-pure/stable/instance/concat":"../node_modules/core-js-pure/stable/instance/concat.js"}],"../node_modules/core-js-pure/modules/es.object.to-string.js":[function(require,module,exports) {
+},{"core-js-pure/stable/instance/concat":"../node_modules/core-js-pure/stable/instance/concat.js"}],"../node_modules/core-js-pure/modules/web.timers.js":[function(require,module,exports) {
+
+var $ = require('../internals/export');
+var global = require('../internals/global');
+var userAgent = require('../internals/engine-user-agent');
+
+var slice = [].slice;
+var MSIE = /MSIE .\./.test(userAgent); // <- dirty ie9- check
+
+var wrap = function (scheduler) {
+  return function (handler, timeout /* , ...arguments */) {
+    var boundArgs = arguments.length > 2;
+    var args = boundArgs ? slice.call(arguments, 2) : undefined;
+    return scheduler(boundArgs ? function () {
+      // eslint-disable-next-line no-new-func
+      (typeof handler == 'function' ? handler : Function(handler)).apply(this, args);
+    } : handler, timeout);
+  };
+};
+
+// ie9- setTimeout & setInterval additional parameters fix
+// https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers
+$({ global: true, bind: true, forced: MSIE }, {
+  // `setTimeout` method
+  // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-settimeout
+  setTimeout: wrap(global.setTimeout),
+  // `setInterval` method
+  // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-setinterval
+  setInterval: wrap(global.setInterval)
+});
+
+},{"../internals/export":"../node_modules/core-js-pure/internals/export.js","../internals/global":"../node_modules/core-js-pure/internals/global.js","../internals/engine-user-agent":"../node_modules/core-js-pure/internals/engine-user-agent.js"}],"../node_modules/core-js-pure/stable/set-timeout.js":[function(require,module,exports) {
+require('../modules/web.timers');
+var path = require('../internals/path');
+
+module.exports = path.setTimeout;
+
+},{"../modules/web.timers":"../node_modules/core-js-pure/modules/web.timers.js","../internals/path":"../node_modules/core-js-pure/internals/path.js"}],"../node_modules/@babel/runtime-corejs3/core-js-stable/set-timeout.js":[function(require,module,exports) {
+module.exports = require("core-js-pure/stable/set-timeout");
+},{"core-js-pure/stable/set-timeout":"../node_modules/core-js-pure/stable/set-timeout.js"}],"../node_modules/core-js-pure/modules/es.object.to-string.js":[function(require,module,exports) {
 // empty
 
 },{}],"../node_modules/core-js-pure/internals/string-multibyte.js":[function(require,module,exports) {
@@ -3651,6 +3690,8 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime-corejs3/regene
 
 var _concat = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stable/instance/concat"));
 
+var _setTimeout2 = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stable/set-timeout"));
+
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime-corejs3/helpers/asyncToGenerator"));
 
 require("./scss/main.scss");
@@ -3660,7 +3701,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var postsContainer = document.getElementById('post-container');
 var loading = document.querySelector('.loader');
 var filter = document.getElementById('filter');
-var limit = 3;
+var limit = 5;
 var page = 1; // Fetch posts from API
 
 function getPosts() {
@@ -3701,7 +3742,7 @@ function _getPosts() {
 
 function showPosts() {
   return _showPosts.apply(this, arguments);
-} // Show initial posts
+} // Show loader and fetch more posts
 
 
 function _showPosts() {
@@ -3736,8 +3777,33 @@ function _showPosts() {
   return _showPosts.apply(this, arguments);
 }
 
+function showLoading() {
+  loading.classList.add('show');
+  (0, _setTimeout2.default)(function () {
+    loading.classList.remove('show');
+    (0, _setTimeout2.default)(function () {
+      page++;
+      showPosts();
+    }, 300);
+  }, 1000);
+} // Show initial posts
+
+
 showPosts();
-},{"@babel/runtime-corejs3/core-js-stable/instance/for-each":"../node_modules/@babel/runtime-corejs3/core-js-stable/instance/for-each.js","@babel/runtime-corejs3/regenerator":"../node_modules/@babel/runtime-corejs3/regenerator/index.js","@babel/runtime-corejs3/core-js-stable/instance/concat":"../node_modules/@babel/runtime-corejs3/core-js-stable/instance/concat.js","@babel/runtime-corejs3/helpers/asyncToGenerator":"../node_modules/@babel/runtime-corejs3/helpers/asyncToGenerator.js","./scss/main.scss":"../src/scss/main.scss"}],"C:/Users/girwa/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+window.addEventListener('scroll', function () {
+  //   console.log(document.documentElement.scrollTop);
+  //   console.log(document.documentElement.scrollHeight);
+  var _document$documentEle = document.documentElement,
+      scrollTop = _document$documentEle.scrollTop,
+      scrollHeight = _document$documentEle.scrollHeight,
+      clientHeight = _document$documentEle.clientHeight;
+
+  if (scrollTop + clientHeight >= scrollHeight - 5) {
+    // console.log(123);
+    showLoading();
+  }
+});
+},{"@babel/runtime-corejs3/core-js-stable/instance/for-each":"../node_modules/@babel/runtime-corejs3/core-js-stable/instance/for-each.js","@babel/runtime-corejs3/regenerator":"../node_modules/@babel/runtime-corejs3/regenerator/index.js","@babel/runtime-corejs3/core-js-stable/instance/concat":"../node_modules/@babel/runtime-corejs3/core-js-stable/instance/concat.js","@babel/runtime-corejs3/core-js-stable/set-timeout":"../node_modules/@babel/runtime-corejs3/core-js-stable/set-timeout.js","@babel/runtime-corejs3/helpers/asyncToGenerator":"../node_modules/@babel/runtime-corejs3/helpers/asyncToGenerator.js","./scss/main.scss":"../src/scss/main.scss"}],"C:/Users/girwa/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
